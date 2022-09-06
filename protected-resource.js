@@ -31,18 +31,25 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get("/user-info", (req, res) => {
   if (req.headers.authorization) {
-    let token = req.headers.authorization.slice(7);
-    let publicKey = fs.readFileSync("assets/public_key.pem");
+    const token = req.headers.authorization.slice(7);
+    const publicKey = fs.readFileSync("assets/public_key.pem");
 
-		try {
-			let verified = jwt.verify(token, publicKey, { algorithm: "RS256" });
-			return res.json({
-				name: users[verified.userName].name,
-				date_of_birth: users[verified.userName].date_of_birth,
-			});
-		} catch (error) {
-			console.log(error);
-		}
+    try {
+      const verified = jwt.verify(token, publicKey, { algorithm: "RS256" });
+
+      const props = verified.scope.split(" ").map((s) => s.slice(11));
+
+      const profile = Object.keys(users[verified.userName])
+        .filter((key) => props.includes(key))
+        .reduce((result, key2) => {
+          result[key2] = users[verified.userName][key2];
+          return result;
+        }, {});
+
+      return res.json(profile);
+    } catch (error) {
+      console.log(error);
+    }
   }
   return res.sendStatus(401);
 });
