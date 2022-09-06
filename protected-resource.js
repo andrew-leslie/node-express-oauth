@@ -48,7 +48,7 @@ app.get("/user-info", (req, res) => {
 
       return res.json(profile);
     } catch (error) {
-      console.log(error);
+
     }
   }
   return res.sendStatus(401);
